@@ -1,0 +1,8 @@
+.DS_Store
+temp
+input
+output
+*.pyc
+*.swp
+*.bmp
+input/cifar-10-batches-py
