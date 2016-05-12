@@ -7,9 +7,9 @@ import datasets
 
 def run():
     test_images, test_labels = datasets.load_cifar10(is_train=False)
-    for clf in [Cifar10Classifier_05(), Cifar10Classifier_06()]:
+    for clf in [Cifar10Classifier_04()]:
         records = []
-        for epoch in range(2000):
+        for epoch in range(1000):
             train_images, train_labels = datasets.load_cifar10(is_train=True)
             clf.fit(train_images, train_labels, max_epoch=1)
             train_accuracy, train_loss =  clf.score(train_images, train_labels)
@@ -25,7 +25,7 @@ def run():
             print "[%(epoch)d][%(name)s]train-acc: %(train_accuracy).3f, train-loss: %(train_loss).3f, test-acc: %(test_accuracy).3f, test-loss: %(test_loss).3f" % summary 
             records.append(summary)
             pd.DataFrame(records).to_csv("../output/%s.csv" % clf.__class__.__name__.lower(), index=False)
-            if train_loss * 100 < test_loss: # Overfitting
+            if train_loss * 30 < test_loss: # Overfitting
                 break
  
 if __name__ == "__main__":
