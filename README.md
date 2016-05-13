@@ -1,5 +1,10 @@
 # CIFAR-10 via TensorFlow
 
+## Install
+```
+sh install.sh
+```
+
 ## Usage
 ```
 python train.py
