@@ -42,8 +42,20 @@ def volume(x):
 def flatten(x):
     return tf.reshape(x, [-1, volume(x)])
 
+def batch_normalization(x):
+    return tf.nn.lrn(x)
+
+def residual(x, channels):
+    h = x
+    for i in range(2):
+        h = activation(batch_normalization(conv(x, channels)))
+        h = conv(h, channels)
+    return activation(h + x)
+
 def accuracy_score(labels, logits):
     correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(labels, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float")) 
     return accuracy
+
+
 

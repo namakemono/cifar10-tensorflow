@@ -14,15 +14,16 @@ python train.py
 
 ## Performance
 
-| Name                    | Precision       |
-|-------------------------|-----------------|
-|Cifar10Classifier_01     | 83.11%          |
-|Cifar10Classifier_02     | 87.00%          |
-|Cifar10Classifier_03     | 87.25%          |
-|Cifar10Classifier_04     | 87.67%          |
-|Cifar10Classifier_05     | 87.17%          |
-|Cifar10Classifier_06     | 86.74%          |
-|Cifar10Classifier_07     | 86.17%          |
+| Name                    | Precision       | Memo                      |
+|-------------------------|-----------------|---------------------------|
+|Cifar10Classifier_01     | 83.11%          |                           |
+|Cifar10Classifier_02     | 87.00%          |                           |
+|Cifar10Classifier_03     | 87.25%          |                           |
+|Cifar10Classifier_04     | 87.67%          |                           |
+|Cifar10Classifier_05     | 87.17%          |                           |
+|Cifar10Classifier_06     | 86.74%          |                           |
+|Cifar10Classifier_07     | 86.17%          | Add Batch Normalization[1]|
+|Cifar10Classifier_08     | 84.93%          | Add Residual Functions[2] |
 
 ## Environment
 
@@ -201,4 +202,5 @@ python train.py
 |softmax      |                                     |
 
 ## References
-- [1]. He, Kaiming, et al. "Deep Residual Learning for Image Recognition." arXiv preprint arXiv:1512.03385 (2015).
+- [1]. Ioffe, Sergey, and Christian Szegedy. "Batch normalization: Accelerating deep network training by reducing internal covariate shift." arXiv preprint arXiv:1502.03167 (2015).
+- [2]. He, Kaiming, et al. "Deep Residual Learning for Image Recognition." arXiv preprint arXiv:1512.03385 (2015).

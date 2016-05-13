@@ -1,5 +1,5 @@
 #!/bin/bash
-
+pip install -r requirements.txt
 curl -O https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz \
  && tar xvzfo cifar-10-python.tar.gz \
  && mkdir -p input \
