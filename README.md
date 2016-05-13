@@ -5,6 +5,8 @@
 sh install.sh
 ```
 
+note: perform `pip install pandas nvidia-ml-py scikit-learn` to install required libraries
+
 ## Usage
 ```
 python train.py
