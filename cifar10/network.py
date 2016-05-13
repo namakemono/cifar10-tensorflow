@@ -137,3 +137,22 @@ class Cifar10Classifier_06(BaseCifar10Classifier):
         h = tf.nn.dropout(h, keep_prob)
         h = F.dense(h, self._num_classes)
         return tf.nn.softmax(h)
+
+class Cifar10Classifier_07(BaseCifar10Classifier):
+    def _inference(self, X, keep_prob):
+        h = F.max_pool(F.activation(F.conv(X, 64)))
+        h = tf.nn.lrn(h, 4)
+        h = F.activation(F.conv(h, 64))
+        h = F.activation(F.conv(h, 64))
+        h = F.max_pool(F.activation(F.conv(h, 128)))
+        h = tf.nn.lrn(h, 4)
+        h = F.activation(F.conv(h, 128))
+        h = F.max_pool(F.activation(F.conv(h, 256)))
+        h = tf.nn.lrn(h, 4)
+        h = F.activation(F.dense(F.flatten(h), 1024))
+        h = tf.nn.dropout(h, keep_prob)
+        h = F.activation(F.dense(h, 256))
+        h = tf.nn.dropout(h, keep_prob)
+        h = F.dense(h, self._num_classes)
+        return tf.nn.softmax(h)
+

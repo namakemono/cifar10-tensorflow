@@ -7,7 +7,7 @@ import datasets
 
 def run():
     test_images, test_labels = datasets.load_cifar10(is_train=False)
-    for clf in [Cifar10Classifier_04()]:
+    for clf in [Cifar10Classifier_07()]:
         records = []
         for epoch in range(1000):
             train_images, train_labels = datasets.load_cifar10(is_train=True)
