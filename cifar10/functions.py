@@ -63,14 +63,3 @@ def accuracy_score(labels, logits):
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float")) 
     return accuracy
 
-def main(argv):
-    import numpy as np
-    x = tf.placeholder("float", [None, 24, 24, 3])
-    y = x.get_shape()
-    init_op = tf.initialize_all_variables()
-    with tf.Session() as sess:
-        sess.run(init_op)
-        print sess.run(y, feed_dict={x: [np.zeros((24, 24, 3))]})
-
-if __name__ == "__main__":
-    tf.app.run()

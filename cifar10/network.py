@@ -4,16 +4,18 @@ import functions as F
 import gentleman
 from sklearn.metrics import accuracy_score
 
-class BaseCifar10Classifier:
+class BaseCifar10Classifier(object):
     def __init__(self):
         self._image_size = 24
         self._num_classes = 10
         self._batch_size = 50
-        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=gentleman.request_mem(3*1024, i_am_nice=False))
+        self._epoch = 1
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=gentleman.request_mem(6*1024, i_am_nice=False))
         self._session = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
         self._images = tf.placeholder("float", shape=[None, self._image_size, self._image_size, 3])
         self._labels = tf.placeholder("float", shape=[None, self._num_classes])
         self._keep_prob = tf.placeholder("float")
+        self._global_step = tf.placeholder("int32") 
         self._logits = self._inference(self._images, self._keep_prob)
         self._avg_loss = self._loss(self._labels, self._logits)
         self._train_op = self._train(self._avg_loss)
@@ -24,8 +26,9 @@ class BaseCifar10Classifier:
         for epoch in range(max_epoch):
             for i in range(0, len(X), self._batch_size):
                 batch_images, batch_labels = X[i:i+self._batch_size], y[i:i+self._batch_size]
-                feed_dict={self._images: batch_images, self._labels: batch_labels, self._keep_prob: 0.5}
-                _, train_avg_loss = self._session.run([self._train_op, self._avg_loss], feed_dict=feed_dict)
+                feed_dict={self._images: batch_images, self._labels: batch_labels, self._keep_prob: 0.5, self._global_step: self._epoch}
+                _, train_avg_loss = self._session.run(fetches=[self._train_op, self._avg_loss], feed_dict=feed_dict)
+            self._epoch += 1
 
     def predict(self, X):
         res = None
@@ -157,21 +160,18 @@ class Cifar10Classifier_07(BaseCifar10Classifier):
         return tf.nn.softmax(h)
 
 class Cifar10Classifier_ResNet20(BaseCifar10Classifier):
+    def __init__(self):
+        self._layers = 3
+        super(Cifar10Classifier_ResNet20, self).__init__()
+
     def _inference(self, X, keep_prob):
-        layers = 2
         h = X
-        h = F.activation(F.batch_normalization(F.conv(h, 16)))
-        for i in range(layers - 1):
-            h = F.residual(h, 16)
-        h = F.activation(F.batch_normalization(F.conv(h, 32, strides=2)))
-        for i in range(layers - 1):
-            h = F.residual(h, 32)
-        h = F.activation(F.batch_normalization(F.conv(h, 64, strides=2)))
-        for i in range(layers - 1):
-            h = F.residual(h, 64)
+        for channels in [16, 32, 64]:
+            h = F.activation(F.batch_normalization(F.conv(h, channels)))
+            for i in range(self._layers):
+                h = F.residual(h, channels)
         h = F.avg_pool(h, ksize=h.get_shape()[1], strides=h.get_shape()[1])
         h = F.flatten(h)
         h = F.dense(h, self._num_classes)
         return tf.nn.softmax(h)
-
 
