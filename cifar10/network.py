@@ -156,38 +156,22 @@ class Cifar10Classifier_07(BaseCifar10Classifier):
         h = F.dense(h, self._num_classes)
         return tf.nn.softmax(h)
 
-class Cifar10Classifier_08(BaseCifar10Classifier):
-    def _inference(self, X, keep_prob):
-        h = F.max_pool(F.activation(F.conv(X, 64)))
-        h = tf.nn.lrn(h, 4)
-        h = F.residual(h, 64)
-        h = F.max_pool(F.activation(F.conv(h, 128)))
-        h = F.residual(h, 128)
-        h = tf.nn.lrn(h, 4)
-        h = F.max_pool(F.activation(F.conv(h, 256)))
-        h = F.residual(h, 256)
-        h = tf.nn.lrn(h, 4)
-        h = F.activation(F.dense(F.flatten(h), 1000))
-        h = F.dense(h, self._num_classes)
-        return tf.nn.softmax(h)
-
 class Cifar10Classifier_ResNet20(BaseCifar10Classifier):
     def _inference(self, X, keep_prob):
         layers = 2
-        h = F.activation(F.batch_normalization(F.conv(X, 16)))
-        for i in range(layers):
+        h = X
+        h = F.activation(F.batch_normalization(F.conv(h, 16)))
+        for i in range(layers - 1):
             h = F.residual(h, 16)
-        h = F.activation(F.batch_normalization(F.conv(X, 32)))
-        h = F.max_pool(h)
-        for i in range(layers):
+        h = F.activation(F.batch_normalization(F.conv(h, 32, strides=2)))
+        for i in range(layers - 1):
             h = F.residual(h, 32)
-        h = F.activation(F.batch_normalization(F.conv(X, 64)))
-        h = F.max_pool(h)
-        for i in range(layers):
+        h = F.activation(F.batch_normalization(F.conv(h, 64, strides=2)))
+        for i in range(layers - 1):
             h = F.residual(h, 64)
-        h = F.activation(F.dense(F.flatten(h), 1000))
+        h = F.avg_pool(h, ksize=h.get_shape()[1], strides=h.get_shape()[1])
+        h = F.flatten(h)
         h = F.dense(h, self._num_classes)
         return tf.nn.softmax(h)
-
 
 

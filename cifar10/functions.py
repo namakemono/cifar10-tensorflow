@@ -1,8 +1,8 @@
 import numpy as np
 import tensorflow as tf
 
-def conv2d(x, W):
-    return tf.nn.conv2d(x, W, strides=[1,1,1,1], padding='SAME')
+def conv2d(x, W, strides=1):
+    return tf.nn.conv2d(x, W, strides=[1,strides,strides,1], padding='SAME')
 
 def weight_variable(shape):
     return tf.Variable(tf.truncated_normal(shape, stddev=0.1))
@@ -16,9 +16,9 @@ def loss(labels, logits):
 def train(total_loss):
     return tf.train.AdamOptimizer(1e-4).minimize(total_loss)
 
-def conv(x, n):
+def conv(x, n, strides=1):
     W, b = weight_variable([3,3,channels(x),n]), bias_variable([n])
-    return conv2d(x, W) + b
+    return conv2d(x, W, strides) + b
 
 def dense(x, n):
     W, b = weight_variable([volume(x), n]), bias_variable([n])
@@ -27,11 +27,11 @@ def dense(x, n):
 def activation(x):
     return tf.nn.relu(x)
 
-def max_pool(x):
-    return tf.nn.max_pool(x, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
+def max_pool(x, ksize=2, strides=2):
+    return tf.nn.max_pool(x, ksize=[1,ksize,ksize,1], strides=[1,strides,strides,1], padding='SAME')
 
-def avg_pool(x):
-    return tf.nn.avg_pool(x, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
+def avg_pool(x, ksize=2, strides=2):
+    return tf.nn.avg_pool(x, ksize=[1,ksize,ksize,1], strides=[1,strides,strides,1], padding='SAME')
 
 def channels(x):
     return int(x.get_shape()[-1])
@@ -45,17 +45,32 @@ def flatten(x):
 def batch_normalization(x):
     return tf.nn.lrn(x)
 
+def batch_normalization(x):
+    eps = 1e-5
+    gamma = bias_variable([x.get_shape()[-1]])
+    beta = bias_variable([x.get_shape()[-1]])
+    mean, variance = tf.nn.moments(x, [0])
+    return gamma * (x - mean) / tf.sqrt(variance + eps) + beta
+
 def residual(x, channels):
-    h = x
-    for i in range(2):
-        h = activation(batch_normalization(conv(x, channels)))
-        h = conv(h, channels)
-    return activation(h + x)
+    h0 = x
+    h1 = activation(batch_normalization(conv(h0, channels)))
+    h2 = batch_normalization(conv(h1, channels))
+    return activation(h2 + x)
 
 def accuracy_score(labels, logits):
     correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(labels, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float")) 
     return accuracy
 
+def main(argv):
+    import numpy as np
+    x = tf.placeholder("float", [None, 24, 24, 3])
+    y = x.get_shape()
+    init_op = tf.initialize_all_variables()
+    with tf.Session() as sess:
+        sess.run(init_op)
+        print sess.run(y, feed_dict={x: [np.zeros((24, 24, 3))]})
 
-
+if __name__ == "__main__":
+    tf.app.run()
