@@ -43,12 +43,9 @@ def flatten(x):
     return tf.reshape(x, [-1, volume(x)])
 
 def batch_normalization(x):
-    return tf.nn.lrn(x)
-
-def batch_normalization(x):
     eps = 1e-5
-    gamma = bias_variable([x.get_shape()[-1]])
-    beta = bias_variable([x.get_shape()[-1]])
+    gamma = bias_variable([channels(x)])
+    beta = bias_variable([channels(x)])
     mean, variance = tf.nn.moments(x, [0])
     return gamma * (x - mean) / tf.sqrt(variance + eps) + beta
 

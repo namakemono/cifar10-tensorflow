@@ -2,7 +2,7 @@
 temp
 input
 output
+models
 *.pyc
 *.swp
 *.bmp
-input/cifar-10-batches-py

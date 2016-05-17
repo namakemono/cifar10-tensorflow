@@ -9,7 +9,7 @@ def run():
     test_images, test_labels = datasets.load_cifar10(is_train=False)
     for clf in [Cifar10Classifier_ResNet20()]:
         records = []
-        for epoch in range(3000):
+        for epoch in range(1000):
             train_images, train_labels = datasets.load_cifar10(is_train=True)
             num_epoch = 1
             start_time = time.time()
@@ -29,7 +29,14 @@ def run():
             }
             print "[%(epoch)d][%(name)s]train-acc: %(train_accuracy).3f, train-loss: %(train_loss).3f, test-acc: %(test_accuracy).3f, test-loss: %(test_loss).3f, %(examples_per_sec).1f examples/sec" % summary 
             records.append(summary)
-            pd.DataFrame(records).to_csv("../output/%s.csv" % clf.__class__.__name__.lower(), index=False)
+            df = pd.DataFrame(records)
+            df.to_csv("../output/%s.csv" % clf.__class__.__name__.lower(), index=False)
+            if df["test_accuracy"].max() - 1e-5 < test_accuracy:
+                save_dir = "../models/%s" % clf.__class__.__name__
+                if not os.path.exists(save_dir):
+                    os.mkdir(save_dir)
+                print "Save to %s" % save_dir
+                clf.save(save_dir + "/model.ckpt")
             if train_loss * 30 < test_loss: # Overfitting
                 break
  
