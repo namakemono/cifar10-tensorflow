@@ -1,11 +1,9 @@
-## Momentum(移動平均)
+# Momentum(移動平均)
 確率的最急降下法について考えたとき，目的関数の曲率が大きくなると，ステップ幅(学習率)が大きくなりすぎて収束しづらくなる．
 そのため，ステップ幅を抑えるために直近のMomentumを足し上げたのがMomentumSGD[1].
 
-### シンプルなMomentumの例:
 - E(w): 損失関数(連続的微分可能.ReLUも考慮する必要があるので，本来は劣微分とか考える必要がある．)
 - t: 反復回数
-- g_t := ∇E(w_t)
 - ν ∈ [0, 1)
 - w_{t+1} = w_t + ∇E(w_t) + νΔw_{t-1}
 ここで，Δw_{t-1} = w_{t-1} - w_{t-2}
@@ -16,13 +14,14 @@ Adam[2]とかもMomentumの要素が入っているので反復回数が少な�
 - [1]. Rumelhart, David E., Geoffrey E. Hinton, and Ronald J. Williams. "Learning representations by back-propagating errors." Cognitive modeling 5.3 (1988): 1.
 - [2]. Kingma, Diederik, and Jimmy Ba. "Adam: A method for stochastic optimization." arXiv preprint arXiv:1412.6980 (2014).
 
-# 重み減衰(Weight Decay)
+# Weight Decay(重み減衰)
 
 ## 効果
 - 損失関数に正則化項を加え過学習を防ぐ
 - qは正の定数(q=1のときL1正則化(Lasso正則化), q=2のときL2正則化(Ridge正則化)と呼ぶ)
 - 単に重み減衰と書かれている場合はL2正則化を意味する．
 - 正則化項にL1, L2両方を足す場合もある．
+- ロジスティック回帰，ニューラルネットワーク，SVMなど幅広い箇所で出てくる．
 
 ### L1正則化
 - 各次元に対して重みが正ならλ, 負なら-λに重みを更新するようになっている．
