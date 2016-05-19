@@ -9,12 +9,12 @@ class BaseCifar10Classifier(object):
         self._num_classes = num_classes
         self._batch_size = batch_size
         self._channels = channels
-        self._epoch = 1
-        self._session = tf.Session()
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
+        self._session = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
         self._images = tf.placeholder("float", shape=[None, self._image_size, self._image_size, self._channels])
         self._labels = tf.placeholder("float", shape=[None, self._num_classes])
         self._keep_prob = tf.placeholder("float")
-        self._global_step = tf.placeholder("int32") 
+        self._global_step = tf.Variable(0, "int32", name="global_step") 
         self._logits = self._inference(self._images, self._keep_prob)
         self._avg_loss = self._loss(self._labels, self._logits)
         self._train_op = self._train(self._avg_loss)
@@ -26,10 +26,9 @@ class BaseCifar10Classifier(object):
         for epoch in range(max_epoch):
             for i in range(0, len(X), self._batch_size):
                 batch_images, batch_labels = X[i:i+self._batch_size], y[i:i+self._batch_size]
-                feed_dict={self._images: batch_images, self._labels: batch_labels, self._keep_prob: 0.5, self._global_step: self._epoch}
-                _, train_avg_loss = self._session.run(fetches=[self._train_op, self._avg_loss], feed_dict=feed_dict)
-            self._epoch += 1
-
+                feed_dict={self._images: batch_images, self._labels: batch_labels, self._keep_prob: 0.5}
+                _, train_avg_loss, global_step = self._session.run(fetches=[self._train_op, self._avg_loss, self._global_step], feed_dict=feed_dict)
+    
     def predict(self, X):
         return np.argmax(self.predict_proba(X), axis=1)
     
@@ -62,10 +61,12 @@ class BaseCifar10Classifier(object):
         pass
 
     def _loss(self, labels, logits):
-        return -tf.reduce_mean(labels * tf.log(tf.clip_by_value(logits, 1e-10, 1.0)))
+        avg_loss = -tf.reduce_mean(labels * tf.log(tf.clip_by_value(logits, 1e-10, 1.0)))
+        tf.add_to_collection('losses', avg_loss)
+        return tf.add_n(tf.get_collection('losses'))
 
     def _train(self, avg_loss):
-        return tf.train.AdamOptimizer(1e-4).minimize(avg_loss)
+        return tf.train.AdamOptimizer().minimize(avg_loss, self._global_step)
 
 class Cifar10Classifier_01(BaseCifar10Classifier):
     def _inference(self, X, keep_prob):
@@ -137,8 +138,8 @@ class Cifar10Classifier_06(BaseCifar10Classifier):
 
 class Cifar10Classifier_ResNet20(BaseCifar10Classifier):
     def __init__(self):
-        self._layers = 3 
-        super(Cifar10Classifier_ResNet20, self).__init__()
+        self._layers = 5 
+        super(Cifar10Classifier_ResNet20, self).__init__(batch_size=128)
 
     def _inference(self, X, keep_prob):
         h = X
@@ -157,11 +158,17 @@ class Cifar10Classifier_ResNet20(BaseCifar10Classifier):
                 if F.volume(h0) == F.volume(h2):
                     h = F.activation(h2 + h0)
                 else:
-                    h3 = F.conv(h0, channels)
-                    h4 = F.avg_pool(h3)
-                    h = F.activation(h2 + h4)
+                    h3 = F.conv(h0, channels, strides=2)
+                    h = F.activation(h2 + h3)
         h = F.avg_pool(h, ksize=h.get_shape()[1], strides=h.get_shape()[1])
         h = F.flatten(h)
         h = F.dense(h, self._num_classes)
         return tf.nn.softmax(h)
+
+class Cifar10Classifier_ResNet20_MomentumSGD(Cifar10Classifier_ResNet20):
+    def _train(self, avg_loss):
+        # return tf.train.AdamOptimizer().minimize(avg_loss, self._global_step)
+        lr = tf.train.exponential_decay(learning_rate=0.1, global_step=self._global_step, decay_steps=32000, decay_rate=0.1, staircase=True)
+        return tf.train.MomentumOptimizer(learning_rate=lr, momentum=0.9).minimize(avg_loss, global_step=self._global_step)
+
 

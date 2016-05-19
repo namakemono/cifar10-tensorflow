@@ -32,5 +32,5 @@ def load_cifar10(is_train=True):
         for i in range(len(cifar10["labels"])):
             images.append(distort(cifar10["data"][i], is_train))
         labels += cifar10["labels"]
-    return images, image_processing.dense_to_one_hot(np.asarray(labels))
+    return image_processing.shuffle(images, image_processing.dense_to_one_hot(np.asarray(labels)))
 
