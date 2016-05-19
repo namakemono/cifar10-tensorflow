@@ -7,9 +7,9 @@ import datasets
 
 def run():
     test_images, test_labels = datasets.load_cifar10(is_train=False)
-    for clf in [Cifar10Classifier_ResNet20_MomentumSGD()]:
+    for clf in [Cifar10Classifier_ResNet110()]: # , Cifar10Classifier_ResNet44(), Cifar10Classifier_ResNet56(), Cifar10Classifier_ResNet110()]:
         records = []
-        for epoch in range(1000):
+        for epoch in range(200):
             train_images, train_labels = datasets.load_cifar10(is_train=True)
             num_epoch = 1
             start_time = time.time()

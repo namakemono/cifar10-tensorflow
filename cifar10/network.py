@@ -28,7 +28,8 @@ class BaseCifar10Classifier(object):
                 batch_images, batch_labels = X[i:i+self._batch_size], y[i:i+self._batch_size]
                 feed_dict={self._images: batch_images, self._labels: batch_labels, self._keep_prob: 0.5}
                 _, train_avg_loss, global_step = self._session.run(fetches=[self._train_op, self._avg_loss, self._global_step], feed_dict=feed_dict)
-    
+            print "epochs =", global_step
+
     def predict(self, X):
         return np.argmax(self.predict_proba(X), axis=1)
     
@@ -136,14 +137,14 @@ class Cifar10Classifier_06(BaseCifar10Classifier):
         h = F.dense(h, self._num_classes)
         return tf.nn.softmax(h)
 
-class Cifar10Classifier_ResNet20(BaseCifar10Classifier):
-    def __init__(self):
-        self._layers = 5 
-        super(Cifar10Classifier_ResNet20, self).__init__(batch_size=128)
+class Cifar10Classifier_ResNet(BaseCifar10Classifier):
+    def __init__(self, layers):
+        self._layers = layers
+        super(Cifar10Classifier_ResNet, self).__init__(batch_size=128)
 
     def _inference(self, X, keep_prob):
         h = X
-        h = F.batch_normalization(F.conv(h, 16))
+        h = F.activation(F.batch_normalization(F.conv(h, 16)))
         for i in range(self._layers):
             h0 = h
             h1 = F.activation(F.batch_normalization(F.conv(h0, 16)))
@@ -160,15 +161,34 @@ class Cifar10Classifier_ResNet20(BaseCifar10Classifier):
                 else:
                     h3 = F.conv(h0, channels, strides=2)
                     h = F.activation(h2 + h3)
-        h = F.avg_pool(h, ksize=h.get_shape()[1], strides=h.get_shape()[1])
+        # h = F.avg_pool(h, ksize=h.get_shape()[1], strides=h.get_shape()[1])
+        h = tf.reduce_mean(h, reduction_indices=[1, 2])
         h = F.flatten(h)
         h = F.dense(h, self._num_classes)
         return tf.nn.softmax(h)
-
-class Cifar10Classifier_ResNet20_MomentumSGD(Cifar10Classifier_ResNet20):
+    
     def _train(self, avg_loss):
-        # return tf.train.AdamOptimizer().minimize(avg_loss, self._global_step)
-        lr = tf.train.exponential_decay(learning_rate=0.1, global_step=self._global_step, decay_steps=32000, decay_rate=0.1, staircase=True)
+        lr = tf.select(tf.less(self._global_step, 32000), 0.1, tf.select(tf.less(self._global_step, 48000), 0.01, 0.001))
         return tf.train.MomentumOptimizer(learning_rate=lr, momentum=0.9).minimize(avg_loss, global_step=self._global_step)
+
+class Cifar10Classifier_ResNet20(Cifar10Classifier_ResNet):
+    def __init__(self):
+        super(Cifar10Classifier_ResNet20, self).__init__(layers=3)
+
+class Cifar10Classifier_ResNet32(Cifar10Classifier_ResNet):
+    def __init__(self):
+        super(Cifar10Classifier_ResNet32, self).__init__(layers=5)
+
+class Cifar10Classifier_ResNet44(Cifar10Classifier_ResNet):
+    def __init__(self):
+        super(Cifar10Classifier_ResNet44, self).__init__(layers=7)
+
+class Cifar10Classifier_ResNet56(Cifar10Classifier_ResNet):
+    def __init__(self):
+        super(Cifar10Classifier_ResNet56, self).__init__(layers=9)
+
+class Cifar10Classifier_ResNet110(Cifar10Classifier_ResNet):
+    def __init__(self):
+        super(Cifar10Classifier_ResNet110, self).__init__(layers=18)
 
 
