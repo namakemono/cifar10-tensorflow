@@ -11,10 +11,10 @@ class BaseCifar10Classifier(object):
         self._channels = channels
         gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
         self._session = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
-        self._images = tf.placeholder("float", shape=[None, self._image_size, self._image_size, self._channels])
-        self._labels = tf.placeholder("float", shape=[None, self._num_classes])
-        self._keep_prob = tf.placeholder("float")
-        self._global_step = tf.Variable(0, "int32", name="global_step") 
+        self._images = tf.placeholder(tf.float32, shape=[None, self._image_size, self._image_size, self._channels])
+        self._labels = tf.placeholder(tf.int64, shape=[None])
+        self._keep_prob = tf.placeholder(tf.float32)
+        self._global_step = tf.Variable(0, tf.int64, name="global_step") 
         self._logits = self._inference(self._images, self._keep_prob)
         self._avg_loss = self._loss(self._labels, self._logits)
         self._train_op = self._train(self._avg_loss)
@@ -62,7 +62,7 @@ class BaseCifar10Classifier(object):
         pass
 
     def _loss(self, labels, logits):
-        cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits, labels)
+        cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits, labels)
         cross_entropy_mean = tf.reduce_mean(cross_entropy)
         tf.add_to_collection('losses', cross_entropy_mean)
         # avg_loss = -tf.reduce_mean(labels * tf.log(tf.clip_by_value(logits, 1e-10, 1.0)))
@@ -170,7 +170,6 @@ class Cifar10Classifier_ResNet(BaseCifar10Classifier):
                     h4 = tf.pad(h3, [[0,0], [0,0], [0,0], [channels / 4, channels / 4]])
                     h = h2 + h4
         h = tf.reduce_mean(h, reduction_indices=[1, 2]) # Global Average Pooling
-        h = F.flatten(h)
         h = F.dense(h, self._num_classes)
         return h
    
