@@ -12,11 +12,15 @@ def distort(image, is_train=True):
     image = np.transpose(image, (1, 2, 0))
     image = image.astype(float)
     if is_train:
+        # I = np.zeros((40, 40, 3))
+        # I[4:36, 4:36] = image
+        # image = image_processing.random_crop(I, (32, 32, 3))
         image = image_processing.random_crop(image, (24, 24, 3))
         image = image_processing.random_flip_left_right(image)
-        image = image_processing.random_brightness(image, max_delta=63)
-        image = image_processing.random_contrast(image, lower=0.2, upper=1.8)
+        # image = image_processing.random_brightness(image, max_delta=63)
+        # image = image_processing.random_contrast(image, lower=0.2, upper=1.8)
     else:
+        pass
         image = image_processing.crop_to_bounding_box(image, 4, 4, 24, 24)
     image = image_processing.per_image_whitening(image)
     return image

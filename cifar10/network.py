@@ -62,8 +62,11 @@ class BaseCifar10Classifier(object):
         pass
 
     def _loss(self, labels, logits):
-        avg_loss = -tf.reduce_mean(labels * tf.log(tf.clip_by_value(logits, 1e-10, 1.0)))
-        tf.add_to_collection('losses', avg_loss)
+        cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits, labels)
+        cross_entropy_mean = tf.reduce_mean(cross_entropy)
+        tf.add_to_collection('losses', cross_entropy_mean)
+        # avg_loss = -tf.reduce_mean(labels * tf.log(tf.clip_by_value(logits, 1e-10, 1.0)))
+        # tf.add_to_collection('losses', avg_loss)
         return tf.add_n(tf.get_collection('losses'))
 
     def _train(self, avg_loss):
@@ -76,7 +79,7 @@ class Cifar10Classifier_01(BaseCifar10Classifier):
         h = F.max_pool(F.activation(F.conv(h, 256)))
         h = F.activation(F.dense(F.flatten(h), 1024))
         h = F.dense(h, self._num_classes)
-        return tf.nn.softmax(h)
+        return h
 
 class Cifar10Classifier_02(BaseCifar10Classifier):
     def _inference(self, X, keep_prob):
@@ -86,7 +89,7 @@ class Cifar10Classifier_02(BaseCifar10Classifier):
         h = F.activation(F.dense(F.flatten(h), 1024))
         h = tf.nn.dropout(h, keep_prob)
         h = F.dense(h, self._num_classes)
-        return tf.nn.softmax(h)
+        return h
 
 class Cifar10Classifier_03(BaseCifar10Classifier):
     def _inference(self, X, keep_prob):
@@ -97,7 +100,7 @@ class Cifar10Classifier_03(BaseCifar10Classifier):
         h = F.activation(F.dense(F.flatten(h), 1024))
         h = tf.nn.dropout(h, keep_prob)
         h = F.dense(h, self._num_classes)
-        return tf.nn.softmax(h)
+        return h
 
 class Cifar10Classifier_04(BaseCifar10Classifier):
     def _inference(self, X, keep_prob):
@@ -109,7 +112,7 @@ class Cifar10Classifier_04(BaseCifar10Classifier):
         h = F.activation(F.dense(F.flatten(h), 1024))
         h = tf.nn.dropout(h, keep_prob)
         h = F.dense(h, self._num_classes)
-        return tf.nn.softmax(h)
+        return h
 
 class Cifar10Classifier_05(BaseCifar10Classifier):
     def _inference(self, X, keep_prob):
@@ -121,7 +124,7 @@ class Cifar10Classifier_05(BaseCifar10Classifier):
         h = F.activation(F.dense(F.flatten(h), 1024))
         h = tf.nn.dropout(h, keep_prob)
         h = F.dense(h, self._num_classes)
-        return tf.nn.softmax(h) 
+        return h
 
 class Cifar10Classifier_06(BaseCifar10Classifier):
     def _inference(self, X, keep_prob):
@@ -135,12 +138,15 @@ class Cifar10Classifier_06(BaseCifar10Classifier):
         h = F.activation(F.dense(h, 256))
         h = tf.nn.dropout(h, keep_prob)
         h = F.dense(h, self._num_classes)
-        return tf.nn.softmax(h)
+        return h
 
 class Cifar10Classifier_ResNet(BaseCifar10Classifier):
     def __init__(self, layers):
         self._layers = layers
-        super(Cifar10Classifier_ResNet, self).__init__(batch_size=128)
+        super(Cifar10Classifier_ResNet, self).__init__(image_size=24, batch_size=128)
+
+    def _residual(self, h, channels, strides):
+        pass
 
     def _inference(self, X, keep_prob):
         h = X
@@ -149,7 +155,8 @@ class Cifar10Classifier_ResNet(BaseCifar10Classifier):
             h0 = h
             h1 = F.activation(F.batch_normalization(F.conv(h0, 16)))
             h2 = F.batch_normalization(F.conv(h1, 16))
-            h = F.activation(h2 + h0)
+            h = h2 + h0
+            # c.f. http://gitxiv.com/comments/7rffyqcPLirEEsmpX
         for channels in [32, 64]:
             for i in range(self._layers):        
                 h0 = h
@@ -157,16 +164,16 @@ class Cifar10Classifier_ResNet(BaseCifar10Classifier):
                 h1 = F.activation(F.batch_normalization(F.conv(h0, channels, strides)))
                 h2 = F.batch_normalization(F.conv(h1, channels))
                 if F.volume(h0) == F.volume(h2):
-                    h = F.activation(h2 + h0)
+                    h = h2 + h0
                 else:
-                    h3 = F.conv(h0, channels, strides=2)
-                    h = F.activation(h2 + h3)
-        # h = F.avg_pool(h, ksize=h.get_shape()[1], strides=h.get_shape()[1])
-        h = tf.reduce_mean(h, reduction_indices=[1, 2])
+                    h3 = F.avg_pool(h0)
+                    h4 = tf.pad(h3, [[0,0], [0,0], [0,0], [channels / 4, channels / 4]])
+                    h = h2 + h4
+        h = tf.reduce_mean(h, reduction_indices=[1, 2]) # Global Average Pooling
         h = F.flatten(h)
         h = F.dense(h, self._num_classes)
-        return tf.nn.softmax(h)
-    
+        return h
+   
     def _train(self, avg_loss):
         lr = tf.select(tf.less(self._global_step, 32000), 0.1, tf.select(tf.less(self._global_step, 48000), 0.01, 0.001))
         return tf.train.MomentumOptimizer(learning_rate=lr, momentum=0.9).minimize(avg_loss, global_step=self._global_step)

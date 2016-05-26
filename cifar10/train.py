@@ -7,7 +7,7 @@ import datasets
 
 def run():
     test_images, test_labels = datasets.load_cifar10(is_train=False)
-    for clf in [Cifar10Classifier_ResNet110()]: # , Cifar10Classifier_ResNet44(), Cifar10Classifier_ResNet56(), Cifar10Classifier_ResNet110()]:
+    for clf in [Cifar10Classifier_ResNet32()]: # , Cifar10Classifier_ResNet44(), Cifar10Classifier_ResNet56(), Cifar10Classifier_ResNet110()]:
         records = []
         for epoch in range(200):
             train_images, train_labels = datasets.load_cifar10(is_train=True)
@@ -38,7 +38,7 @@ def run():
                     os.mkdir(save_dir)
                 print "Save to %s" % save_dir
                 clf.save(save_dir + "/model.ckpt")
-            if train_loss * 30 < test_loss: # Overfitting
+            if train_loss * 300 < test_loss: # Overfitting
                 break
 
 if __name__ == "__main__":

@@ -46,12 +46,14 @@ def volume(x):
 def flatten(x):
     return tf.reshape(x, [-1, volume(x)])
 
-def batch_normalization(x):
+def batch_normalization(x, decay = 0.9):
     eps = 1e-5
     gamma = bias_variable([channels(x)])
     beta = bias_variable([channels(x)])
-    mean, variance = tf.nn.moments(x, [0])
-    return gamma * (x - mean) / tf.sqrt(variance + eps) + beta
+    mean, variance = tf.nn.moments(x, [0, 1, 2], keep_dims=False)
+    return tf.nn.batch_normalization(x, mean, variance, beta, gamma, eps, 'bn') 
+    # mean, variance = tf.nn.moments(x, [0])
+    # return gamma * (x - mean) / tf.sqrt(variance + eps) + beta
 
 def accuracy_score(labels, logits):
     correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(labels, 1))
