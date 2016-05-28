@@ -65,8 +65,6 @@ class BaseCifar10Classifier(object):
         cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits, labels)
         cross_entropy_mean = tf.reduce_mean(cross_entropy)
         tf.add_to_collection('losses', cross_entropy_mean)
-        # avg_loss = -tf.reduce_mean(labels * tf.log(tf.clip_by_value(logits, 1e-10, 1.0)))
-        # tf.add_to_collection('losses', avg_loss)
         return tf.add_n(tf.get_collection('losses'))
 
     def _train(self, avg_loss):
@@ -146,29 +144,28 @@ class Cifar10Classifier_ResNet(BaseCifar10Classifier):
         super(Cifar10Classifier_ResNet, self).__init__(image_size=24, batch_size=128)
 
     def _residual(self, h, channels, strides):
-        pass
+        h0 = h
+        h1 = F.activation(F.batch_normalization(F.conv(h0, channels, strides)))
+        h2 = F.batch_normalization(F.conv(h1, channels))
+        # c.f. http://gitxiv.com/comments/7rffyqcPLirEEsmpX
+        if F.volume(h0) == F.volume(h2):
+            h = h2 + h0
+        else:
+            h3 = F.avg_pool(h0)
+            h4 = tf.pad(h3, [[0,0], [0,0], [0,0], [channels / 4, channels / 4]])
+            h = h2 + h4
+        return h
 
     def _inference(self, X, keep_prob):
         h = X
         h = F.activation(F.batch_normalization(F.conv(h, 16)))
         for i in range(self._layers):
-            h0 = h
-            h1 = F.activation(F.batch_normalization(F.conv(h0, 16)))
-            h2 = F.batch_normalization(F.conv(h1, 16))
-            h = h2 + h0
-            # c.f. http://gitxiv.com/comments/7rffyqcPLirEEsmpX
+            h = self._residual(h, channels=16, strides=1)
         for channels in [32, 64]:
             for i in range(self._layers):        
-                h0 = h
                 strides = 2 if i == 0 else 1
-                h1 = F.activation(F.batch_normalization(F.conv(h0, channels, strides)))
-                h2 = F.batch_normalization(F.conv(h1, channels))
-                if F.volume(h0) == F.volume(h2):
-                    h = h2 + h0
-                else:
-                    h3 = F.avg_pool(h0)
-                    h4 = tf.pad(h3, [[0,0], [0,0], [0,0], [channels / 4, channels / 4]])
-                    h = h2 + h4
+                h = self._residual(h, channels, strides)
+        h = F.activation(F.batch_normalization(h))
         h = tf.reduce_mean(h, reduction_indices=[1, 2]) # Global Average Pooling
         h = F.dense(h, self._num_classes)
         return h

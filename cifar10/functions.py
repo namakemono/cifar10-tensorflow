@@ -4,11 +4,12 @@ import tensorflow as tf
 def conv2d(x, W, strides=1):
     return tf.nn.conv2d(x, W, strides=[1,strides,strides,1], padding='SAME')
 
-def weight_variable(shape, wd=0.0001):
+def weight_variable(shape, wd=1e-4):
     var = tf.Variable(tf.truncated_normal(shape, stddev=0.1))
     if wd is not None:
         weight_decay = tf.mul(tf.nn.l2_loss(var), wd)
         tf.add_to_collection('losses', weight_decay)
+    print var.get_shape()
     return var
 
 def bias_variable(shape):
@@ -48,10 +49,10 @@ def flatten(x):
 
 def batch_normalization(x):
     eps = 1e-5
-    gamma = bias_variable([channels(x)])
-    beta = bias_variable([channels(x)])
+    gamma = tf.Variable(tf.constant(1.0, shape=[channels(x)])) # bias_variable([channels(x)])
+    beta = tf.Variable(tf.constant(0.0, shape=[channels(x)])) # bias_variable([channels(x)])
     mean, variance = tf.nn.moments(x, [0, 1, 2], keep_dims=False)
-    return tf.nn.batch_normalization(x, mean, variance, beta, gamma, eps, 'bn') 
+    return tf.nn.batch_normalization(x, mean, variance, beta, gamma, eps) 
 
 def accuracy_score(labels, logits):
     correct_prediction = tf.equal(labels, tf.argmax(logits, 1))
