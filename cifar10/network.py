@@ -46,14 +46,14 @@ class BaseCifar10Classifier(object):
         return res
 
     def score(self, X, y):
-        acc_list, total_loss = [], 0
+        total_acc, total_loss = 0, 0
         for i in range(0, len(X), self._batch_size):
             batch_images, batch_labels = X[i:i+self._batch_size], y[i:i+self._batch_size]
             feed_dict={self._images: batch_images, self._labels: batch_labels, self._keep_prob: 1.0}
             acc, avg_loss = self._session.run(fetches=[self._accuracy, self._avg_loss], feed_dict=feed_dict)
-            acc_list.append(acc)
+            total_acc += acc * len(batch_images)
             total_loss += avg_loss * len(batch_images)
-        return np.asarray(acc_list).mean(), total_loss / len(X)
+        return total_acc / len(X), total_loss / len(X)
 
     def save(self, filepath):
         self._saver.save(self._session, filepath)

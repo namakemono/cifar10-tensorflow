@@ -4,8 +4,8 @@ import tensorflow as tf
 def conv2d(x, W, strides=1):
     return tf.nn.conv2d(x, W, strides=[1,strides,strides,1], padding='SAME')
 
-def weight_variable(shape, wd=1e-3):
-    var = tf.Variable(tf.truncated_normal(shape, stddev=0.1))
+def weight_variable(shape, wd=1e-4):
+    var = tf.Variable(tf.truncated_normal(shape, stddev=np.sqrt(0.1/shape[-1])))
     if wd is not None:
         weight_decay = tf.mul(tf.nn.l2_loss(var), wd)
         tf.add_to_collection('losses', weight_decay)
