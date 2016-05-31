@@ -42,5 +42,5 @@ def run(ClassName):
             break
 
 if __name__ == "__main__":
-    for ClassName in [Cifar10Classifier_ResNet20]:
+    for ClassName in [Cifar10Classifier_ResNet32]: #, Cifar10Classifier_ResNet56, Cifar10Classifier_ResNet110]:
         run(ClassName)

@@ -141,12 +141,12 @@ class Cifar10Classifier_06(BaseCifar10Classifier):
 class Cifar10Classifier_ResNet(BaseCifar10Classifier):
     def __init__(self, layers):
         self._layers = layers
-        super(Cifar10Classifier_ResNet, self).__init__(image_size=24, batch_size=128)
+        super(Cifar10Classifier_ResNet, self).__init__(image_size=32, batch_size=128)
 
     def _residual(self, h, channels, strides):
         h0 = h
-        h1 = F.activation(F.batch_normalization(F.conv(h0, channels, strides)))
-        h2 = F.batch_normalization(F.conv(h1, channels))
+        h1 = F.activation(F.batch_normalization(F.conv(h0, channels, strides, bias_term=False)))
+        h2 = F.batch_normalization(F.conv(h1, channels, bias_term=False))
         # c.f. http://gitxiv.com/comments/7rffyqcPLirEEsmpX
         if F.volume(h0) == F.volume(h2):
             h = h2 + h0
@@ -154,18 +154,17 @@ class Cifar10Classifier_ResNet(BaseCifar10Classifier):
             h3 = F.avg_pool(h0)
             h4 = tf.pad(h3, [[0,0], [0,0], [0,0], [channels / 4, channels / 4]])
             h = h2 + h4
-        return h
+        return F.activation(h)
 
     def _inference(self, X, keep_prob):
         h = X
-        h = F.activation(F.batch_normalization(F.conv(h, 16)))
+        h = F.activation(F.batch_normalization(F.conv(h, 16, bias_term=False)))
         for i in range(self._layers):
             h = self._residual(h, channels=16, strides=1)
         for channels in [32, 64]:
             for i in range(self._layers):        
                 strides = 2 if i == 0 else 1
                 h = self._residual(h, channels, strides)
-        h = F.activation(F.batch_normalization(h))
         h = tf.reduce_mean(h, reduction_indices=[1, 2]) # Global Average Pooling
         h = F.dense(h, self._num_classes)
         return h
