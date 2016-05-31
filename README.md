@@ -27,7 +27,7 @@ output に数値計算結果が出力され，modelsにモデルが生成され�
 |Cifar10Classifier_ResNet32     | 92.04%          | [2]                 |
 |Cifar10Classifier_ResNet44     | 91.93%          | [2]                 |
 |Cifar10Classifier_ResNet56     | 92.38%          | [2]                 |
-|Cifar10Classifier_ResNet56     | 92.94%          | [2]                 |
+|Cifar10Classifier_ResNet110     | 92.94%          | [2]                 |
 
 ## Environment
 
