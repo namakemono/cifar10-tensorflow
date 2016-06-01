@@ -141,7 +141,7 @@ class Cifar10Classifier_06(BaseCifar10Classifier):
 class Cifar10Classifier_ResNet(BaseCifar10Classifier):
     def __init__(self, layers):
         self._layers = layers
-        super(Cifar10Classifier_ResNet, self).__init__(image_size=32, batch_size=128)
+        super(Cifar10Classifier_ResNet, self).__init__(image_size=24, batch_size=128)
 
     def _residual(self, h, channels, strides):
         h0 = h
@@ -180,6 +180,37 @@ class Cifar10Classifier_ResNet20(Cifar10Classifier_ResNet):
 class Cifar10Classifier_ResNet32(Cifar10Classifier_ResNet):
     def __init__(self):
         super(Cifar10Classifier_ResNet32, self).__init__(layers=5)
+
+class Cifar10Classifier_ResNet32_Momentum(Cifar10Classifier_ResNet32): # Original Paper
+    def __init__(self):
+        super(Cifar10Classifier_ResNet32_Momentum, self).__init__()
+    def _train(self, avg_loss):
+        lr = tf.select(tf.less(self._global_step, 32000), 0.1, tf.select(tf.less(self._global_step, 48000), 0.01, 0.001))
+        return tf.train.MomentumOptimizer(learning_rate=lr, momentum=0.9).minimize(avg_loss, global_step=self._global_step)
+
+class Cifar10Classifier_ResNet32_Adadelta(Cifar10Classifier_ResNet32):
+    def __init__(self):
+        super(Cifar10Classifier_ResNet32_Adadelta, self).__init__()
+    def _train(self, avg_loss):
+        return tf.train.AdadeltaOptimizer().minimize(avg_loss, global_step=self._global_step)
+
+class Cifar10Classifier_ResNet32_Adagrad(Cifar10Classifier_ResNet32):
+    def __init__(self):
+        super(Cifar10Classifier_ResNet32_Adagrad, self).__init__()
+    def _train(self, avg_loss):
+        return tf.train.AdagradOptimizer(0.01).minimize(avg_loss, global_step=self._global_step)
+
+class Cifar10Classifier_ResNet32_Adam(Cifar10Classifier_ResNet32):
+    def __init__(self):
+        super(Cifar10Classifier_ResNet32_Adam, self).__init__()
+    def _train(self, avg_loss):
+        return tf.train.AdamOptimizer().minimize(avg_loss, global_step=self._global_step)
+
+class Cifar10Classifier_ResNet32_RMSProp(Cifar10Classifier_ResNet32):
+    def __init__(self):
+        super(Cifar10Classifier_ResNet32_RMSProp, self).__init__()
+    def _train(self, avg_loss):
+        return tf.train.RMSPropOptimizer(0.001).minimize(avg_loss, global_step=self._global_step)
 
 class Cifar10Classifier_ResNet44(Cifar10Classifier_ResNet):
     def __init__(self):

@@ -1,12 +1,13 @@
 import os
 import time, datetime
+import argparse
 import numpy as np
 import pandas as pd
+import network
 from network import *
 import datasets
 
-def run(ClassName):
-    clf = ClassName()
+def run(clf):
     test_images, test_labels = datasets.load_cifar10(is_train=False)
     records = []
     for epoch in range(200):
@@ -42,5 +43,7 @@ def run(ClassName):
             break
 
 if __name__ == "__main__":
-    for ClassName in [Cifar10Classifier_ResNet32]: #, Cifar10Classifier_ResNet56, Cifar10Classifier_ResNet110]:
-        run(ClassName)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--class_name', type=str, default='Cifar10Classifier_ResNet110', choices=dir(network))
+    args = parser.parse_args()
+    run(eval("%s()" % args.class_name))
