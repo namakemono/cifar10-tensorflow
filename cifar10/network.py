@@ -181,6 +181,81 @@ class Cifar10Classifier_ResNet32(Cifar10Classifier_ResNet):
     def __init__(self):
         super(Cifar10Classifier_ResNet32, self).__init__(layers=5)
 
+class Cifar10Classifier_ResNet32_BNAfterAddition(Cifar10Classifier_ResNet32):
+    def __init__(self):
+        super(Cifar10Classifier_ResNet32_BNAfterAddition, self).__init__()
+    def _residual(self, h, channels, strides):
+        h0 = h
+        h1 = F.activation(F.batch_normalization(F.conv(h0, channels, strides, bias_term=False)))
+        h2 = F.conv(h1, channels, bias_term=False)
+        if F.volume(h0) == F.volume(h2):
+            h = h2 + h0
+        else:
+            h3 = F.avg_pool(h0)
+            h4 = tf.pad(h3, [[0,0], [0,0], [0,0], [channels / 4, channels / 4]])
+            h = h2 + h4
+        return F.activation(F.batch_normalization(h))
+
+class Cifar10Classifier_ResNet32_ReLUBeforeAddition(Cifar10Classifier_ResNet32):
+    def __init__(self):                         
+        super(Cifar10Classifier_ResNet32_ReLUBeforeAddition, self).__init__()
+    def _residual(self, h, channels, strides):
+        h0 = h                                  
+        h1 = F.activation(F.batch_normalization(F.conv(h0, channels, strides, bias_term=False)))
+        h2 = F.activation(F.batch_normalization(F.conv(h1, channels, bias_term=False)))
+        if F.volume(h0) == F.volume(h2):        
+            h = h2 + h0
+        else:                
+            h3 = F.avg_pool(h0)
+            h4 = tf.pad(h3, [[0,0], [0,0], [0,0], [channels / 4, channels / 4]])
+            h = h2 + h4      
+        return h
+
+class Cifar10Classifier_ResNet32_ReLUOnlyPreActivation(Cifar10Classifier_ResNet32):
+    def __init__(self):
+        super(Cifar10Classifier_ResNet32_ReLUOnlyPreActivation, self).__init__()
+    def _residual(self, h, channels, strides):
+        h0 = h
+        h1 = F.batch_normalization(F.conv(F.activation(h0), channels, strides, bias_term=False))
+        h2 = F.batch_normalization(F.conv(F.activation(h1), channels, bias_term=False))
+        if F.volume(h0) == F.volume(h2):
+            h = h2 + h0
+        else:
+            h3 = F.avg_pool(h0)
+            h4 = tf.pad(h3, [[0,0], [0,0], [0,0], [channels / 4, channels / 4]])
+            h = h2 + h4
+        return h
+
+class Cifar10Classifier_ResNet32_FullPreActivation(Cifar10Classifier_ResNet32):
+    def __init__(self):
+        super(Cifar10Classifier_ResNet32_FullPreActivation, self).__init__()
+    def _residual(self, h, channels, strides):
+        h0 = h  
+        h1 = F.conv(F.batch_normalization(F.activation(h0)), channels, strides, bias_term=False)
+        h2 = F.conv(F.batch_normalization(F.activation(h1)), channels, bias_term=False)
+        if F.volume(h0) == F.volume(h2):                
+            h = h2 + h0                                 
+        else:                                           
+            h3 = F.avg_pool(h0)
+            h4 = tf.pad(h3, [[0,0], [0,0], [0,0], [channels / 4, channels / 4]])
+            h = h2 + h4
+        return h
+
+class Cifar10Classifier_ResNet32_NoActivation(Cifar10Classifier_ResNet32):
+    def __init__(self):
+        super(Cifar10Classifier_ResNet32_NoActivation, self).__init__()
+    def _residual(self, h, channels, strides):
+        h0 = h
+        h1 = F.activation(F.batch_normalization(F.conv(h0, channels, strides, bias_term=False)))
+        h2 = F.batch_normalization(F.conv(h1, channels, bias_term=False))
+        if F.volume(h0) == F.volume(h2):
+            h = h2 + h0
+        else:
+            h3 = F.avg_pool(h0)
+            h4 = tf.pad(h3, [[0,0], [0,0], [0,0], [channels / 4, channels / 4]])
+            h = h2 + h4
+        return h
+
 class Cifar10Classifier_ResNet32_Momentum(Cifar10Classifier_ResNet32): # Original Paper
     def __init__(self):
         super(Cifar10Classifier_ResNet32_Momentum, self).__init__()

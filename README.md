@@ -40,15 +40,37 @@ output に数値計算結果が出力され，modelsにモデルが生成され�
 
 ## ResNet
 
-### 層数でのテストデータの誤差(%)
+### 層数でのテストデータのテスト誤差(%)
 
 ![ResNet on CIFAR-10](figures/resnet.layers.png)
 
 1epochは訓練データ5万枚を一周学習させた回数
 
-### 各種ソルバーでの誤差(%)
+### 各種ソルバーでのテスト誤差(%)
 
-![各種ソルバーでのResNet32の誤差](figures/resnet.solvers.png)
+![各種ソルバーでのResNet32のテスト誤差](figures/resnet.solvers.png)
+
+| Name                    | Test Error    |
+|-------------------------|---------------|
+| Original Paper          | 8.27%         |
+| Adadelta(LR 1e-3)       | 31.03%        |
+| Adagrad(LR 1e-2)        | 15.90%        |
+| RMSProp(LR 1e-3)        | 10.97%        |
+
+注). LRはLearning Rateの意
+
+### Batch NormとReLUの位置でのテスト誤差
+
+![Batch NormとReLUの位置違いでのテスト誤差](figures/resnet.mapping.png)
+
+| Name                     | Test Error |
+|--------------------------|------------|
+| Original Paper           | 8.27%      |
+| BN after addition        | 8.89%      |
+| ReLU before addition     | 9.54%      |
+| ReLU only pre activation | 8.82%      |
+| ful pre-activation       | 10.03%     |
+| No ReLU                  | 8.85%      |
 
 ## References
 - [1]. Ioffe, Sergey, and Christian Szegedy. "Batch normalization: Accelerating deep network training by reducing internal covariate shift." arXiv preprint arXiv:1502.03167 (2015).
