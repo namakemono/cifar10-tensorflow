@@ -20,12 +20,6 @@ def bias_variable(shape):
     print "bias", b.get_shape()
     return b
 
-def loss(labels, logits):
-    return -tf.reduce_mean(labels * tf.log(tf.clip_by_value(logits, 1e-10, 1.0)))
-
-def train(total_loss):
-    return tf.train.AdamOptimizer(1e-4).minimize(total_loss)
-
 def conv(x, n, strides=1, bias_term=True):
     W = weight_variable([3,3,channels(x),n])
     res = conv2d(x, W, strides)

@@ -41,7 +41,7 @@ def normalize(image):
     return image / 255.0
 
 def per_image_whitening(image):
-    return (image - np.mean(image)) # / np.std(image)
+    return (image - np.mean(image)) / np.std(image)
 
 def random_flip_left_right(image):
     if np.random.random() < 0.5:
