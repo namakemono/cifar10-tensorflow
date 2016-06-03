@@ -83,11 +83,15 @@ ImageNet 2015優勝アルゴリズム.
 
 - [3]. He, Kaiming, et al. "Delving deep into rectifiers: Surpassing human-level performance on imagenet classification." Proceedings of the IEEE International Conference on Computer Vision. 2015.
 
-重みの初期化方法が載っている．
+ResNetなど多層のネットワークを構築する上で必要な重みの初期化方法が載っている．
 
 - [4]. He, Kaiming, et al. "Identity mappings in deep residual networks." arXiv preprint arXiv:1603.05027 (2016).
 
 Residual Networkの解析が行われている．
+
+- [5]. Lin, Min, Qiang Chen, and Shuicheng Yan. "Network in network." arXiv preprint arXiv:1312.4400 (2013).
+
+ResNet構築に必要なGlobal Average Poolingについて記載されている．
 
 - [?]. [Survey - Deep Residual Learning for Image Recognition](http://qiita.com/supersaiakujin/items/935bbc9610d0f87607e8), 2016/03/01
 
